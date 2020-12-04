@@ -1,0 +1,427 @@
+{
+	"Workflows" : [
+		{
+			"Name" : "Planificaciones de doble validación v.8",
+			"Description" : "Validación 2 niveles(empleado->supervisor->Admin) v.8",
+			"Target" : "planning",
+			"Priority" : 0,
+			"InitialState" : "SolCrear",
+			"States" : [
+				{
+					"Name" : "SolCrear",
+					"Description" : "Pendiente de validación nivel 1",
+					"Match" : "SolCrear",
+					"Events" : [{
+							"Name" : "View",
+							"State" : "SolCrear"
+						},
+{
+							"Name" : "Request",
+							"Description" : "Solicitar",
+							"State" : "SolCrear",
+							"Condition": "IsInRole(\"Persona\")"
+						},
+						{
+							"Name" : "Request",
+							"Description" : "Solicitar",
+							"State" : "PendingLevel2",
+							"Condition" : "IsInRole(\"User\") && IsInRole(\"Admin\") = false && IsBoss(this.employee)"
+
+						}, 
+						{
+							"Name" : "Request",
+							"Description" : "Solicitar",
+							"State" : "Accepted",
+							"Condition" : "IsInRole(\"Admin\") && IsBoss(this.employee)"
+						},
+						{
+							"Name": "Edit",
+							"Description" : "Editar",
+							"State": "SolCrear",
+							"Condition": "this.selfOwner && IsInRole(\"Persona\")"
+						},
+						{
+							"Name": "Delete",
+							"Description" : "Eliminar",
+							"State": "Deleted",
+							"Condition": "this.selfOwner && IsInRole(\"Persona\")"
+						},
+						{
+							"Name": "Edit",
+							"Description" : "Editar",
+							"State": "SolCrear",
+							"Condition": "this.selfOwner = false && IsInRole(\"User\") && IsBoss(this.employee)"
+						},
+						{
+							"Name": "Delete",
+							"Description" : "Eliminar",
+							"State": "Deleted",
+							"Condition": "this.selfOwner = false && IsInRole(\"User\") && IsBoss(this.employee)"
+						}, 
+						{
+							"Name" : "Accept",
+							"Description" : "Aceptar",
+							"State" : "PendingLevel2",
+							"Condition" : "IsInRole(\"User\") && IsInRole(\"Admin\") = false && IsBoss(this.employee)"
+						},
+						{
+							"Name" : "Accept",
+							"Description" : "Aceptar",
+							"State" : "Accepted",
+							"Condition" : "IsInRole(\"Admin\") && IsBoss(this.employee)"
+						},
+						{
+							"Name" : "Deny",
+							"Description" : "Denegar",
+							"State" : "Denied",
+							"Condition" : "IsInRole(\"User\") && IsBoss(this.employee)"
+						}
+					]
+				}, {
+					"Name" : "PendingLevel2",
+					"Description" : "Pendiente de validación nivel 2",
+					"Actions": ["PlanningLogConfirm"],
+					"Match" : "SolCrear",
+					"Events" : [{
+							"Name" : "View",
+							"State" : "PendingLevel2"
+						},
+						{
+							"Name": "Edit",
+							"Description" : "Editar",
+							"State": "PendingLevel2",
+							"Condition": "this.selfOwner = false && IsInRole(\"Admin\") && IsBoss(this.employee)"
+						},
+						{
+							"Name": "Delete",
+							"Description" : "Eliminar",
+							"State": "Deleted",
+							"Condition": "this.selfOwner = false && IsInRole(\"Admin\") && IsBoss(this.employee)"
+						},
+						{
+							"Name" : "Accept",
+							"Description" : "Aceptar",
+							"State" : "Accepted",
+							"Condition" : "IsInRole(\"Admin\") && IsBoss(this.employee)"
+						},
+						{
+							"Name" : "Deny",
+							"Description" : "Denegar",
+							"State" : "Denied",
+							"Condition" : "IsInRole(\"Admin\") && IsBoss(this.employee)"
+						}
+					]
+				}, {
+					"Name" : "Accepted",
+					"Description" : "Aceptada",
+					"Match" : "SolCrear, SolAceptada",
+					"Actions": ["PlanningLogConfirm", "PlanningSetDirty"],
+					"Events" : [{
+							"Name" : "View",
+							"State" : "Accepted",
+							"ErrorMessage" : ""
+						},
+						{
+							"Name": "Edit",
+							"Description" : "Editar",
+							"State": "Accepted",
+							"Condition": "this.selfOwner = false && IsInRole(\"Admin\") && IsBoss(this.employee)"
+						},
+						{
+							"Name": "Delete",
+							"Description" : "Eliminar",
+							"State": "Deleted",
+							"Condition": "this.selfOwner = false && IsInRole(\"Admin\") && IsBoss(this.employee)"
+						},
+						{
+							"Name": "Deny",
+							"Description" : "Denegar",
+							"State": "PendingDenyLevel1",
+							"Condition": "this.selfOwner && IsInRole(\"Persona\")"
+						}
+					]
+				},
+				{
+					"Name": "Denied",
+					"Description": "Denegada",
+					"Match": "SolCrear, SolDenegada",
+					"Actions": ["PlanningLogConfirm"],
+					"Events": [
+						{
+							"Name": "View",
+							"State": "Denied"
+						},
+						{
+							"Name": "Delete",
+							"Description" : "Eliminar",
+							"State": "Deleted",
+							"Condition": "(this.selfOwner && IsInRole(\"Persona\")) || (this.selfOwner = false && IsInRole(\"Admin\") && IsBoss(this.employee))"
+						}
+					]
+				},
+				{
+					"Name": "PendingDenyLevel1",
+					"Description": "Cancelación pendiente nivel 1",
+					"Match": "SolEliminar",
+					"Events": [
+						{
+							"Name": "Delete",
+							"Description" : "Eliminar",
+							"State": "Accepted",
+							"Condition": "this.selfOwner = false && IsInRole(\"User\") && IsBoss(this.employee)"
+						},
+						{
+							"Name": "Delete",
+							"Description" : "Eliminar",
+							"State": "Accepted",
+							"Condition": "this.selfOwner && IsInRole(\"Persona\")"
+						},
+						{
+							"Name" : "Accept",
+							"Description" : "Aceptar",
+							"State" : "AcceptedDeny",
+							"Condition" : "IsInRole(\"Admin\") && IsBoss(this.employee)"
+						},
+						{
+							"Name" : "Accept",
+							"Description" : "Aceptar",
+							"State" : "PendingDenyLevel2",
+							"Condition" : "IsInRole(\"User\") && IsInRole(\"Admin\") = false && IsBoss(this.employee)"
+						},
+						{
+							"Name" : "Deny",
+							"Description" : "Denegar",
+							"State" : "DeniedDeny"
+						},
+						{
+							"Name": "View",
+							"State": "PendingDenyLevel1"
+						}
+					]
+				},
+				{
+					"Name": "PendingDenyLevel2",
+					"Description": "Cancelación pendiente nivel 2",
+					"Actions": ["PlanningLogConfirm"],
+					"Match": "SolEliminar",
+					"Events": [
+						{
+							"Name": "Delete",
+							"Description" : "Eliminar",
+							"State": "Accepted",
+							"Condition": "IsInRole(\"Admin\") && IsBoss(this.employee) && this.selfOwner = false"
+						},
+						{
+							"Name" : "Accept",
+							"Description" : "Aceptar",
+							"State" : "AcceptedDeny",
+							"Condition" : "IsInRole(\"Admin\") && IsBoss(this.employee)"
+						},
+						{
+							"Name" : "Deny",
+							"Description" : "Denegar",
+							"State" : "DeniedDeny",
+							"Condition" : "IsInRole(\"Admin\") && IsBoss(this.employee)"
+						},
+						{
+							"Name": "View",
+							"State": "PendingDenyLevel2"
+						}
+					]
+				},
+				{
+					"Name": "AcceptedDeny",
+					"Description": "Cancelación aceptada",
+					"Match": "SolEliminar, SolAceptada",
+					"Actions": ["PlanningLogConfirm", "PlanningSetDirty"],
+					"Events": [
+						{
+							"Name": "View",
+							"State": "AcceptedDeny"
+						},
+						{
+							"Name": "Delete",
+							"Description" : "Eliminar",
+							"State": "Deleted",
+							"Condition": "(this.selfOwner && IsInRole(\"Persona\")) || (this.selfOwner = false && IsInRole(\"Admin\") && IsBoss(this.employee))"
+						}
+					]
+				},
+				{
+					"Name": "DeniedDeny",
+					"Description": "Cancelación denegada",
+					"Match": "SolEliminar, SolCancelada",
+					"Actions": ["PlanningLogConfirm"],
+					"Events": [
+						{
+							"Name": "Delete",
+							"Description" : "Eliminar",
+							"State": "PendingDenyLevel2",
+							"Condition": "(this.selfOwner && IsInRole(\"Persona\")) || (this.selfOwner = false && IsInRole(\"Admin\") && IsBoss(this.employee))"
+						},
+						{
+							"Name": "View",
+							"State": "DeniedDeny"
+						}
+					]
+				},
+				{
+					"Name" : "Validated",
+					"Description" : "Validada",
+					"Match" : "0",
+					"Events" : [{
+							"Name" : "View",
+							"State" : "Accepted",
+							"ErrorMessage" : ""
+						},
+						{
+							"Name": "Edit",
+							"Description" : "Editar",
+							"State": "Accepted",
+							"Condition": "this.selfOwner = false && IsInRole(\"Admin\") && IsBoss(this.employee)"
+						},
+						{
+							"Name": "Delete",
+							"Description" : "Eliminar",
+							"State": "Deleted",
+							"Condition": "this.selfOwner = false && IsInRole(\"Admin\") && IsBoss(this.employee)"
+						},
+						{
+							"Name": "Deny",
+							"Description" : "Denegar",
+							"State": "PendingDenyLevel1",
+							"Condition": "this.selfOwner && IsInRole(\"Persona\")"
+						}
+					]
+				},
+				{
+					"Name": "Deleted",
+					"Actions": ["PlanningNotifyAndDelete"]
+				}
+			]
+		}
+	],
+	"Translations":{
+		"Validación 2 niveles (empleado->supervisor->Admin) v.6":{
+			"es-ES" : "Validación 2 niveles (empleado->supervisor->Admin) v.6",
+			"ca-ES" : "Validació de 2 nivells (empleat->supervisor->Admin) v.6",
+			"en-GB" : "2-level validation (employee->supervisor->Admin) v.6",
+			"fr-FR" : "Validation à 2 niveaux (employé->superviseur->Admin) v.6",
+			"pt-PT" : "Validação 2 niveis(empregado->supervisor->Admin) v.6",
+			"es-EU" : "2 mailetako baliozkotzea(langilea->ikuskatzailea->Admin) v.6"
+		},
+		"Aceptada":{
+			"es-ES" : "Aceptada",
+			"ca-ES" : "Acceptada",
+			"en-GB" : "Accepted",
+			"fr-FR" : "Acceptée",
+			"pt-PT" : "Aceite",
+			"es-EU" : "Onartua"
+		},
+		"Aceptar":{
+			"es-ES" : "Aceptar",
+			"ca-ES" : "Acceptar",
+			"en-GB" : "Accept",
+			"fr-FR" : "Accepter",
+			"pt-PT" : "Aceitar",
+			"es-EU" : "Onartu"
+		},
+		"Denegar":{
+			"es-ES" : "Denegar",
+			"ca-ES" : "Denegar",
+			"en-GB" : "Deny",
+			"fr-FR" : "Refuser",
+			"pt-PT" : "Recusar",
+			"es-EU" : "Ukatu"
+		},
+		"Editar":{
+			"es-ES" : "Editar",
+			"ca-ES" : "Modificar",
+			"en-GB" : "Edited",
+			"fr-FR" : "Modifier",
+			"pt-PT" : "Editar",
+			"es-EU" : "Editatu"
+		},
+		"Eliminar":{
+			"es-ES" : "Eliminar",
+			"ca-ES" : "Suprimir",
+			"en-GB" : "Delete",
+			"fr-FR" : "Supprimer",
+			"pt-PT" : "Eliminar",
+			"es-EU" : "Ezabatu"
+		},
+		"Pendiente de validación nivel 1":{
+			"es-ES" : "Pendiente de validación nivel 1",
+			"ca-ES" : "Pendent de validar pel nivell 1",
+			"en-GB" : "Pending validation level 1",
+			"fr-FR" : "Attente de validation niveau 1",
+			"pt-PT" : "Pendente de validação nível 1",
+			"es-EU" : "1. Mailako baliozkotzearen zain"
+			
+		},
+		"Pendiente de validación nivel 2":{
+			"es-ES" : "Pendiente de validación nivel 2",
+			"ca-ES" : "Pendent de validar pel nivell 2",
+			"en-BG" : "Pending validation level 2",
+			"fr-FR" : "En attente de validation niveau 2",
+			"pt-PT" : "Pendente de validação nível 2",
+			"es-EU": "2. Mailako baliozkotzearen zain"
+		},
+		"Solicitar":{
+			"es-ES" : "Solicitar",
+			"ca-ES" : "Sol·licitar",
+			"en-GB" : "Request",
+			"fr-FR" : "Demander",
+			"pt-PT" : "Solicitar",
+			"es-EU" : "Eskatu"
+		},
+		"Validada":{
+			"es-ES" : "Validada",
+			"ca-ES" : "Validada",
+			"en-GB" : "Validated",
+			"fr-FR" : "Validée",
+			"pt-PT" : "Validada",
+			"es-EU" : "Baliozkotua"
+		},
+		"Cancelación aceptada":{
+			"es-ES": "Cancelación aceptada",
+			"ca-ES": "Anul·lació acceptada",
+			"en-GB": "Cancellation accepted",
+			"fr-FR": "Annulation acceptée",
+			"pt-PT": "Cancelamento aceite",
+			"es-EU": "Ezeztapen onartua"
+		},
+		"Cancelación denegada":{
+			"es-ES": "Cancelación denegada",
+			"ca-ES": "Anul·lació denegada",
+			"en-GB": "Cancellation denied",
+			"fr-FR": "Annulation refusée",
+			"pt-PT": "Cancelamento recusado",
+			"es-EU": "Ezeztapen ukatua"
+		},
+		"Cancelación pendiente nivel 1":{
+			"es-ES": "Cancelación pendiente nivel 1",
+			"ca-ES": "Anul·lació pendent del nivell 1",
+			"en-GB": "Cancellation pending level 1",
+			"fr-FR": "Annulation en attente niveau 1",
+			"pt-PT": "Cancelamento pendente nível 1",
+			"es-EU": "1. Mailako ezeztapenaren zain"
+		},
+		"Cancelación pendiente nivel 2":{
+			"es-ES": "Cancelación pendiente nivel 2",
+			"ca-ES": "Anul·lació pendent del nivell 2",
+			"en-GB": "Cancellation pending level 2",
+			"fr-FR": "Annulation en attente niveau 2",
+			"pt-PT": "Cancelamento pendente nível 2",
+			"es-EU": "2. Mailako ezeztapenaren zain"
+		},
+		"Denegada":{
+			"es-ES": "Denegada",
+			"ca-ES": "Denegada",
+			"en-GB": "Denied",
+			"fr-FR": "Refusée",
+			"pt-PT": "Recusado",
+			"es-EU": "Ukatua"
+		}
+	}
+}

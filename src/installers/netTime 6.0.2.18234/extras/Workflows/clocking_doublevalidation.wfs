@@ -1,0 +1,1239 @@
+{
+	"Workflows": [{
+			"Name": "Petición de marcajes con doble validación v.4",
+			"Description": "Incidencia con validación 2 niveles(empleado->supervisor->Admin) v.4",
+			"Target": "clocking",
+			"Condition": "this.remoteClocking = false && (IsInRole(\"User\") || (IsInRole(\"Persona\") && this.employee.Portal.NoRequiereValidacionEnCorreccion = false))",
+			"Priority": 0,
+			"InitialState": "SinDefinir",
+			"States": [{
+					"Name": "SinDefinir",
+					"Description": "Sin solicitud",
+					"Match": "NoDemand",
+					"Events": [{
+							"Name": "Create",
+							"Description": "Crear",
+							"State": "PendingCreate",
+							"Condition": "IsInRole(\"Persona\") && IsCurrentUser(this.employee)"
+						}, {
+							"Name": "Fix",
+							"Description": "Corregir",
+							"State": "PendingFix",
+							"Condition": "IsInRole(\"Persona\") && IsCurrentUser(this.employee) && this.state > 16777216 && this.state < 268435200"
+						}, {
+							"Name": "Recover",
+							"Description": "Recuperar",
+							"State": "PendingRecover",
+							"Condition": "IsInRole(\"Persona\") && IsCurrentUser(this.employee) && BitMask(this.type, 32)"
+						}, {
+							"Name": "Edit",
+							"Description": "Editar",
+							"State": "PendingEdit",
+							"Actions": ["ClockingPendingEdit"],
+							"Condition": "IsInRole(\"Persona\") && IsCurrentUser(this.employee)"
+						}, {
+							"Name": "Delete",
+							"Description": "Eliminar",
+							"State": "PendingDelete",
+							"Condition": "IsInRole(\"Persona\") && IsCurrentUser(this.employee)"
+						}, {
+							"Name": "Create",
+							"Description": "Crear",
+							"State": "PendingCreateLevel2",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") = false"
+						}, {
+							"Name": "Fix",
+							"Description": "Corregir",
+							"State": "PendingFixLevel2",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") = false && this.state > 16777216 && this.state < 268435200"
+						}, {
+							"Name": "Recover",
+							"Description": "Recuperar",
+							"State": "PendingRecoverLevel2",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") = false && BitMask(this.type, 32)"
+						}, {
+							"Name": "Edit",
+							"Description": "Editar",
+							"State": "PendingEditLevel2",
+							"Actions": ["ClockingPendingEdit"],
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") = false"
+						}, {
+							"Name": "Delete",
+							"Description": "Eliminar",
+							"State": "PendingDeleteLevel2",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") = false"
+						}, {
+							"Name": "Create",
+							"Description": "Crear",
+							"State": "SinDefinir",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\")"
+						}, {
+							"Name": "Fix",
+							"Description": "Corregir",
+							"State": "SinDefinir",
+							"Actions": ["ClockingFix"],
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") && this.state > 16777216 && this.state < 268435200"
+						}, {
+							"Name": "Recover",
+							"Description": "Recuperar",
+							"State": "SinDefinir",
+							"Actions": ["ClockingFlagAcceptRecover"],
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") && BitMask(this.type, 32)"
+						}, {
+							"Name": "Edit",
+							"Description": "Editar",
+							"State": "SinDefinir",
+							"Actions": ["ClockingAddAndDelete"],
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\")"
+						}, {
+							"Name": "Delete",
+							"Description": "Eliminar",
+							"State": "SinDefinir",
+							"Actions": ["ClockingDelete"],
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\")"
+						}, {
+							"Name": "Comment",
+							"State": "SinDefinir",
+							"Actions": ["ClockingComment"]
+						}
+					]
+				}, {
+					"Name": "PendingCreate",
+					"Description": "Creación pendiente nivel 1",
+					"Match": "SolCrear, SolPendienteCrear",
+					"Events": [{
+							"Name": "Deny",
+							"Description": "Denegar",
+							"Actions": ["ClockingDelete"],
+							"State": "SinDefinir",
+							"Condition": "IsInRole(\"Persona\") && IsCurrentUser(this.employee)"
+						}, {
+							"Name": "Accept",
+							"Description": "Aceptar",
+							"State": "PendingCreateLevel2",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") = false"
+						}, {
+							"Name": "Accept",
+							"Description": "Aceptar",
+							"State": "Created",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\")"
+						}, {
+							"Name": "Deny",
+							"Description": "Denegar",
+							"State": "DeniedCreate",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee)"
+						}, {
+							"Name": "Comment",
+							"State": "PendingCreate",
+							"Actions": ["ClockingComment"]
+						}
+					]
+				}, {
+					"Name": "PendingFix",
+					"Description": "Corrección pendiente nivel 1",
+					"Match": "SolCorregir",
+					"Events": [{
+							"Name": "Deny",
+							"Description": "Denegar",
+							"State": "SinDefinir",
+							"Condition": "IsInRole(\"Persona\") && IsCurrentUser(this.employee)"
+						}, {
+							"Name": "Accept",
+							"Description": "Aceptar",
+							"State": "PendingFixLevel2",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") = false"
+						}, {
+							"Name": "Accept",
+							"Description": "Aceptar",
+							"State": "Fixed",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\")"
+						}, {
+							"Name": "Deny",
+							"Description": "Denegar",
+							"State": "DeniedFixed",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee)"
+						}, {
+							"Name": "Comment",
+							"State": "PendingFix",
+							"Actions": ["ClockingComment"]
+						}
+					]
+				}, {
+					"Name": "PendingRecover",
+					"Description": "Recuperación pendiente nivel 1",
+					"Match": "SolRecuperar",
+					"Events": [{
+							"Name": "Deny",
+							"Description": "Denegar",
+							"State": "SinDefinir",
+							"Condition": "IsInRole(\"Persona\") && IsCurrentUser(this.employee)"
+						}, {
+							"Name": "Accept",
+							"Description": "Aceptar",
+							"State": "Recovered",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\")"
+						}, {
+							"Name": "Accept",
+							"Description": "Aceptar",
+							"State": "PendingRecoverLevel2",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") = false"
+						}, {
+							"Name": "Deny",
+							"Description": "Denegar",
+							"State": "DeniedRecover",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee)"
+						}, {
+							"Name": "Comment",
+							"State": "PendingRecover",
+							"Actions": ["ClockingComment"]
+						}
+					]
+				}, {
+					"Name": "PendingEdit",
+					"Description": "Edición pendiente nivel 1",
+					"Match": "SolEliminar",
+					"Events": [{
+							"Name": "Delete",
+							"Description": "Eliminar",
+							"State": "PendingDelete",
+							"Condition": "IsInRole(\"Persona\") && IsCurrentUser(this.employee)"
+						}, {
+							"Name": "Deny",
+							"Description": "Denegar",
+							"State": "SinDefinir",
+							"Condition": "IsInRole(\"Persona\") && IsCurrentUser(this.employee)"
+						}, {
+							"Name": "Accept",
+							"Description": "Aceptar",
+							"State": "Edited",
+							"Actions": ["ClockingDelete"],
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\")"
+						}, {
+							"Name": "Accept",
+							"Description": "Aceptar",
+							"State": "PendingEditLevel2",
+							"Actions": ["ClockingDelete"],
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") = false"
+						}, {
+							"Name": "Deny",
+							"Description": "Denegar",
+							"State": "DeniedEdit",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee)"
+						}, {
+							"Name": "Comment",
+							"State": "PendingEdit",
+							"Actions": ["ClockingComment"]
+						}
+					]
+				}, {
+					"Name": "PendingDelete",
+					"Description": "Eliminación pendiente nivel 1",
+					"Match": "SolEliminar",
+					"Events": [{
+							"Name": "Deny",
+							"Description": "Denegar",
+							"State": "SinDefinir",
+							"Condition": "IsInRole(\"Persona\") && IsCurrentUser(this.employee)"
+						}, {
+							"Name": "Accept",
+							"Description": "Aceptar",
+							"State": "Deleted",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\")"
+						}, {
+							"Name": "Accept",
+							"Description": "Aceptar",
+							"State": "PendingDeleteLevel2",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") = false"
+						}, {
+							"Name": "Deny",
+							"Description": "Denegar",
+							"State": "DeniedDelete",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee)"
+						}, {
+							"Name": "Comment",
+							"State": "PendingDelete",
+							"Actions": ["ClockingComment"]
+						}
+					]
+				}, {
+					"Name": "PendingCreateLevel2",
+					"Description": "Creación pendiente nivel 2",
+					"Match": "SolCrear, SolPendienteCrear",
+					"Events": [{
+							"Name": "Accept",
+							"Description": "Aceptar",
+							"State": "Created",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\")"
+						}, {
+							"Name": "Deny",
+							"Description": "Denegar",
+							"State": "DeniedCreate",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\")"
+						}, {
+							"Name": "Comment",
+							"State": "PendingCreateLevel2",
+							"Actions": ["ClockingComment"]
+						}
+					]
+				}, {
+					"Name": "PendingFixLevel2",
+					"Description": "Correción pendiente nivel 2",
+					"Match": "SolCorregir",
+					"Events": [{
+							"Name": "Accept",
+							"Description": "Aceptar",
+							"State": "Fixed",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\")"
+						}, {
+							"Name": "Deny",
+							"Description": "Denegar",
+							"State": "DeniedFixed",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\")"
+						}, {
+							"Name": "Comment",
+							"State": "PendingFixLevel2",
+							"Actions": ["ClockingComment"]
+						}
+					]
+				}, {
+					"Name": "PendingRecoverLevel2",
+					"Description": "Recuperación pendiente nivel 2",
+					"Match": "SolRecuperar",
+					"Events": [{
+							"Name": "Accept",
+							"Description": "Aceptar",
+							"State": "Recovered",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\")"
+						}, {
+							"Name": "Deny",
+							"Description": "Denegar",
+							"State": "DeniedRecover",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\")"
+						}, {
+							"Name": "Comment",
+							"State": "PendingRecoverLevel2",
+							"Actions": ["ClockingComment"]
+						}
+					]
+				}, {
+					"Name": "PendingEditLevel2",
+					"Description": "Eliminación pendiente nivel 2",
+					"Match": "SolEliminar",
+					"Events": [{
+							"Name": "Accept",
+							"Description": "Aceptar",
+							"State": "Edited",
+							"Actions": ["ClockingDelete"],
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\")"
+						}, {
+							"Name": "Deny",
+							"Description": "Denegar",
+							"State": "DeniedEdit",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\")"
+						}, {
+							"Name": "Delete",
+							"Description": "Eliminar",
+							"State": "SinDefinir",
+							"Actions": ["ClockingDelete"],
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\")"
+						}, {
+							"Name": "Comment",
+							"State": "PendingEditLevel2",
+							"Actions": ["ClockingComment"]
+						}
+					]
+				}, {
+					"Name": "PendingDeleteLevel2",
+					"Description": "Eliminación pendiente nivel 2",
+					"Match": "SolEliminar",
+					"Events": [{
+							"Name": "Accept",
+							"Description": "Aceptar",
+							"State": "Deleted",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\")"
+						}, {
+							"Name": "Deny",
+							"Description": "Denegar",
+							"State": "DeniedDelete",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\")"
+						}, {
+							"Name": "Comment",
+							"State": "PendingDeleteLevel2",
+							"Actions": ["ClockingComment"]
+						}
+					]
+				}, {
+					"Name": "Created",
+					"Description": "Creado",
+					"Match": "SolCrear, SolAceptada",
+					"Events": [{
+							"Name": "Fix",
+							"Description": "Corregir",
+							"State": "PendingFix",
+							"Condition": "IsInRole(\"Persona\") && IsCurrentUser(this.employee) && this.state > 16777216 && this.state < 268435200"
+						}, {
+							"Name": "Edit",
+							"Description": "Editar",
+							"State": "PendingEdit",
+							"Actions": ["ClockingPendingEdit"],
+							"Condition": "IsInRole(\"Persona\") && IsCurrentUser(this.employee)"
+						}, {
+							"Name": "Delete",
+							"Description": "Eliminar",
+							"State": "PendingDelete",
+							"Condition": "IsInRole(\"Persona\") && IsCurrentUser(this.employee)"
+						}, {
+							"Name": "Fix",
+							"Description": "Corregir",
+							"State": "SinDefinir",
+							"Actions": ["ClockingFix"],
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") && this.state > 16777216 && this.state < 268435200"
+						}, {
+							"Name": "Edit",
+							"Description": "Editar",
+							"State": "SinDefinir",
+							"Actions": ["ClockingAddAndDelete"],
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\")"
+						}, {
+							"Name": "Delete",
+							"Description": "Eliminar",
+							"State": "SinDefinir",
+							"Actions": ["ClockingDelete"],
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\")"
+						}, {
+							"Name": "Fix",
+							"Description": "Corregir",
+							"State": "PendingFixLevel2",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") = false && this.state > 16777216 && this.state < 268435200"
+						}, {
+							"Name": "Edit",
+							"Description": "Editar",
+							"State": "PendingEditLevel2",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") = false",
+							"Actions": ["ClockingPendingEdit"]
+						}, {
+							"Name": "Delete",
+							"Description": "Eliminar",
+							"State": "PendingDeleteLevel2",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") = false"
+						}, {
+							"Name": "Comment",
+							"State": "Created",
+							"Actions": ["ClockingComment"]
+						}
+					]
+				}, {
+					"Name": "DeniedCreate",
+					"Description": "Creación denegada",
+					"Match": "SolCrear, SolCancelada",
+					"Events": [{
+							"Name": "Fix",
+							"Description": "Corregir",
+							"State": "PendingFix",
+							"Condition": "IsInRole(\"Persona\") && IsCurrentUser(this.employee) && this.state > 16777216 && this.state < 268435200"
+						}, {
+							"Name": "Edit",
+							"Description": "Editar",
+							"State": "PendingEdit",
+							"Actions": ["ClockingPendingEdit"],
+							"Condition": "IsInRole(\"Persona\") && IsCurrentUser(this.employee)"
+						}, {
+							"Name": "Delete",
+							"Description": "Eliminar",
+							"State": "PendingDelete",
+							"Condition": "IsInRole(\"Persona\") && IsCurrentUser(this.employee)"
+						}, {
+							"Name": "Fix",
+							"Description": "Corregir",
+							"State": "SinDefinir",
+							"Actions": ["ClockingFix"],
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") && this.state > 16777216 && this.state < 268435200"
+						}, {
+							"Name": "Edit",
+							"Description": "Editar",
+							"State": "SinDefinir",
+							"Actions": ["ClockingAddAndDelete"],
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\")"
+						}, {
+							"Name": "Delete",
+							"Description": "Eliminar",
+							"State": "SinDefinir",
+							"Actions": ["ClockingDelete"],
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\")"
+						}, {
+							"Name": "Fix",
+							"Description": "Corregir",
+							"State": "PendingFixLevel2",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") = false && this.state > 16777216 && this.state < 268435200"
+						}, {
+							"Name": "Edit",
+							"Description": "Editar",
+							"State": "PendingEditLevel2",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") = false",
+							"Actions": ["ClockingPendingEdit"]
+						}, {
+							"Name": "Delete",
+							"Description": "Eliminar",
+							"State": "PendingDeleteLevel2",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") = false"
+						}, {
+							"Name": "Comment",
+							"State": "DeniedCreate",
+							"Actions": ["ClockingComment"]
+						}
+					]
+				}, {
+					"Name": "Fixed",
+					"Description": "Corregido",
+					"Match": "SolCorregir, SolAceptada",
+					"Actions": ["ClockingFix"],
+					"Events": [{
+							"Name": "Fix",
+							"Description": "Corregir",
+							"State": "PendingFix",
+							"Condition": "IsInRole(\"Persona\") && IsCurrentUser(this.employee) && this.state > 16777216 && this.state < 268435200"
+						}, {
+							"Name": "Edit",
+							"Description": "Editar",
+							"State": "PendingEdit",
+							"Actions": ["ClockingPendingEdit"],
+							"Condition": "IsInRole(\"Persona\") && IsCurrentUser(this.employee)"
+						}, {
+							"Name": "Delete",
+							"Description": "Eliminar",
+							"State": "PendingDelete",
+							"Condition": "IsInRole(\"Persona\") && IsCurrentUser(this.employee)"
+						}, {
+							"Name": "Fix",
+							"Description": "Corregir",
+							"State": "SinDefinir",
+							"Actions": ["ClockingFix"],
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") && this.state > 16777216 && this.state < 268435200"
+						}, {
+							"Name": "Edit",
+							"Description": "Editar",
+							"State": "SinDefinir",
+							"Actions": ["ClockingAddAndDelete"],
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\")"
+						}, {
+							"Name": "Delete",
+							"Description": "Eliminar",
+							"State": "SinDefinir",
+							"Actions": ["ClockingDelete"],
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\")"
+						}, {
+							"Name": "Fix",
+							"Description": "Corregir",
+							"State": "PendingFixLevel2",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") = false && this.state > 16777216 && this.state < 268435200"
+						}, {
+							"Name": "Edit",
+							"Description": "Editar",
+							"State": "PendingEditLevel2",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") = false",
+							"Actions": ["ClockingPendingEdit"]
+						}, {
+							"Name": "Delete",
+							"Description": "Eliminar",
+							"State": "PendingDeleteLevel2",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") = false"
+						}, {
+							"Name": "Comment",
+							"State": "Fixed",
+							"Actions": ["ClockingComment"]
+						}
+					]
+				}, {
+					"Name": "DeniedFix",
+					"Description": "Corrección denegada",
+					"Match": "SolCorregir, SolCancelada",
+					"Events": [{
+							"Name": "Fix",
+							"Description": "Corregir",
+							"State": "PendingFix",
+							"Condition": "IsInRole(\"Persona\") && IsCurrentUser(this.employee) && this.state > 16777216 && this.state < 268435200"
+						}, {
+							"Name": "Edit",
+							"Description": "Editar",
+							"State": "PendingEdit",
+							"Actions": ["ClockingPendingEdit"],
+							"Condition": "IsInRole(\"Persona\") && IsCurrentUser(this.employee)"
+						}, {
+							"Name": "Delete",
+							"Description": "Eliminar",
+							"State": "PendingDelete",
+							"Condition": "IsInRole(\"Persona\") && IsCurrentUser(this.employee)"
+						}, {
+							"Name": "Fix",
+							"Description": "Corregir",
+							"State": "SinDefinir",
+							"Actions": ["ClockingFix"],
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") && this.state > 16777216 && this.state < 268435200"
+						}, {
+							"Name": "Edit",
+							"Description": "Editar",
+							"State": "SinDefinir",
+							"Actions": ["ClockingAddAndDelete"],
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\")"
+						}, {
+							"Name": "Delete",
+							"Description": "Eliminar",
+							"State": "SinDefinir",
+							"Actions": ["ClockingDelete"],
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\")"
+						}, {
+							"Name": "Fix",
+							"Description": "Corregir",
+							"State": "PendingFixLevel2",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") = false && this.state > 16777216 && this.state < 268435200"
+						}, {
+							"Name": "Edit",
+							"Description": "Editar",
+							"State": "PendingEditLevel2",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") = false",
+							"Actions": ["ClockingPendingEdit"]
+						}, {
+							"Name": "Delete",
+							"Description": "Eliminar",
+							"State": "PendingDeleteLevel2",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") = false"
+						}, {
+							"Name": "Comment",
+							"State": "DeniedFix",
+							"Actions": ["ClockingComment"]
+						}
+					]
+				}, {
+					"Name": "Recovered",
+					"Description": "Recuperado",
+					"Match": "SolRecuperar, SolAceptada",
+					"Actions": ["ClockingFlagAcceptRecover"],
+					"Events": [{
+							"Name": "Edit",
+							"Description": "Editar",
+							"State": "PendingEdit",
+							"Actions": ["ClockingPendingEdit"],
+							"Condition": "IsInRole(\"Persona\") && IsCurrentUser(this.employee)"
+						}, {
+							"Name": "Delete",
+							"Description": "Eliminar",
+							"State": "PendingDelete",
+							"Condition": "IsInRole(\"Persona\") && IsCurrentUser(this.employee)"
+						}, {
+							"Name": "Fix",
+							"Description": "Corregir",
+							"State": "SinDefinir",
+							"Actions": ["ClockingFix"],
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") && this.state > 16777216 && this.state < 268435200"
+						}, {
+							"Name": "Edit",
+							"Description": "Editar",
+							"State": "SinDefinir",
+							"Actions": ["ClockingAddAndDelete"],
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\")"
+						}, {
+							"Name": "Delete",
+							"Description": "Eliminar",
+							"State": "SinDefinir",
+							"Actions": ["ClockingDelete"],
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\")"
+						}, {
+							"Name": "Fix",
+							"Description": "Corregir",
+							"State": "PendingFixLevel2",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") = false && this.state > 16777216 && this.state < 268435200"
+						},
+						{
+							"Name": "Edit",
+							"Description": "Editar",
+							"State": "PendingEditLevel2",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") = false",
+							"Actions": ["ClockingPendingEdit"]
+						}, {
+							"Name": "Delete",
+							"Description": "Eliminar",
+							"State": "PendingDeleteLevel2",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") = false"
+						}, {
+							"Name": "Comment",
+							"State": "Recovered",
+							"Actions": ["ClockingComment"]
+						}
+					]
+				}, {
+					"Name": "DeniedRecover",
+					"Description": "Recuperación denegada",
+					"Match": "SolRecuperar, SolCancelada",
+					"Events": [{
+							"Name": "Fix",
+							"Description": "Corregir",
+							"State": "PendingFix",
+							"Condition": "IsInRole(\"Persona\") && IsCurrentUser(this.employee) && this.state > 16777216 && this.state < 268435200"
+						}, {
+							"Name": "Recover",
+							"Description": "Recuperar",
+							"State": "PendingRecover",
+							"Condition": "IsInRole(\"Persona\") && IsCurrentUser(this.employee)"
+						}, {
+							"Name": "Edit",
+							"Description": "Editar",
+							"State": "PendingEdit",
+							"Actions": ["ClockingPendingEdit"],
+							"Condition": "IsInRole(\"Persona\") && IsCurrentUser(this.employee)"
+						}, {
+							"Name": "Delete",
+							"Description": "Eliminar",
+							"State": "PendingDelete",
+							"Condition": "IsInRole(\"Persona\") && IsCurrentUser(this.employee)"
+						}, {
+							"Name": "Fix",
+							"Description": "Corregir",
+							"State": "SinDefinir",
+							"Actions": ["ClockingFix"],
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") && this.state > 16777216 && this.state < 268435200"
+						}, {
+							"Name": "Edit",
+							"Description": "Editar",
+							"State": "SinDefinir",
+							"Actions": ["ClockingAddAndDelete"],
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\")"
+						}, {
+							"Name": "Recover",
+							"Description": "Recuperar",
+							"State": "SinDefinir",
+							"Actions": ["ClockingFlagAcceptRecover"],
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\")"
+						}, {
+							"Name": "Delete",
+							"Description": "Eliminar",
+							"State": "SinDefinir",
+							"Actions": ["ClockingDelete"],
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\")"
+						}, {
+							"Name": "Fix",
+							"Description": "Corregir",
+							"State": "PendingFixLevel2",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") = false && this.state > 16777216 && this.state < 268435200"
+						}, {
+							"Name": "Recover",
+							"Description": "Recuperar",
+							"State": "PendingRecoverLevel2",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") = false"
+						}, {
+							"Name": "Edit",
+							"Description": "Editar",
+							"State": "PendingEditLevel2",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") = false",
+							"Actions": ["ClockingPendingEdit"]
+						}, {
+							"Name": "Delete",
+							"Description": "Eliminar",
+							"State": "PendingDeleteLevel2",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") = false"
+						}, {
+							"Name": "Comment",
+							"State": "DeniedRecover",
+							"Actions": ["ClockingComment"]
+						}
+					]
+				}, {
+					"Name": "Deleted",
+					"Description": "Eliminado",
+					"Match": "SolEliminar, SolAceptada",
+					"Events": [{
+							"Name": "Fix",
+							"Description": "Corregir",
+							"State": "PendingFix",
+							"Condition": "IsInRole(\"Persona\") && IsCurrentUser(this.employee) && this.state > 16777216 && this.state < 268435200"
+						}, {
+							"Name": "Recover",
+							"Description": "Recuperar",
+							"State": "PendingRecover",
+							"Condition": "IsInRole(\"Persona\") && IsCurrentUser(this.employee)"
+						}, {
+							"Name": "Edit",
+							"Description": "Editar",
+							"State": "PendingEdit",
+							"Actions": ["ClockingPendingEdit"],
+							"Condition": "IsInRole(\"Persona\") && IsCurrentUser(this.employee)"
+						}, {
+							"Name": "Delete",
+							"Description": "Eliminar",
+							"State": "PendingDelete",
+							"Condition": "IsInRole(\"Persona\") && IsCurrentUser(this.employee)"
+						}, {
+							"Name": "Fix",
+							"Description": "Corregir",
+							"State": "SinDefinir",
+							"Actions": ["ClockingFix"],
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") && this.state > 16777216 && this.state < 268435200"
+						}, {
+							"Name": "Edit",
+							"Description": "Editar",
+							"State": "SinDefinir",
+							"Actions": ["ClockingAddAndDelete"],
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\")"
+						}, {
+							"Name": "Recover",
+							"Description": "Recuperar",
+							"State": "SinDefinir",
+							"Actions": ["ClockingFlagAcceptRecover"],
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\")"
+						}, {
+							"Name": "Delete",
+							"Description": "Eliminar",
+							"State": "SinDefinir",
+							"Actions": ["ClockingDelete"],
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\")"
+						}, {
+							"Name": "Fix",
+							"Description": "Corregir",
+							"State": "PendingFixLevel2",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") = false && this.state > 16777216 && this.state < 268435200"
+						}, {
+							"Name": "Recover",
+							"Description": "Recuperar",
+							"State": "PendingRecoverLevel2",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") = false"
+						}, {
+							"Name": "Edit",
+							"Description": "Editar",
+							"State": "PendingEditLevel2",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") = false",
+							"Actions": ["ClockingPendingEdit"]
+						}, {
+							"Name": "Delete",
+							"Description": "Eliminar",
+							"State": "PendingDeleteLevel2",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") = false"
+						}, {
+							"Name": "Comment",
+							"State": "Deleted",
+							"Actions": ["ClockingComment"]
+						}
+					]
+				}, {
+					"Name": "DeniedDelete",
+					"Description": "Eliminación denegada",
+					"Match": "SolEliminar, SolCancelada",
+					"Events": [{
+							"Name": "Fix",
+							"Description": "Corregir",
+							"State": "PendingFix",
+							"Condition": "IsInRole(\"Persona\") && IsCurrentUser(this.employee) && this.state > 16777216 && this.state < 268435200"
+						}, {
+							"Name": "Recover",
+							"Description": "Recuperar",
+							"State": "PendingRecover",
+							"Condition": "IsInRole(\"Persona\") && IsCurrentUser(this.employee)"
+						},
+						{
+							"Name": "Edit",
+							"Description": "Editar",
+							"State": "PendingEdit",
+							"Actions": ["ClockingPendingEdit"],
+							"Condition": "IsInRole(\"Persona\") && IsCurrentUser(this.employee)"
+						}, {
+							"Name": "Delete",
+							"Description": "Eliminar",
+							"State": "PendingDelete",
+							"Condition": "IsInRole(\"Persona\") && IsCurrentUser(this.employee)"
+						}, {
+							"Name": "Fix",
+							"Description": "Corregir",
+							"State": "SinDefinir",
+							"Actions": ["ClockingFix"],
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") && this.state > 16777216 && this.state < 268435200"
+						}, {
+							"Name": "Edit",
+							"Description": "Editar",
+							"State": "SinDefinir",
+							"Actions": ["ClockingAddAndDelete"],
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\")"
+						}, {
+							"Name": "Delete",
+							"Description": "Eliminar",
+							"State": "SinDefinir",
+							"Actions": ["ClockingDelete"],
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\")"
+						}, {
+							"Name": "Fix",
+							"Description": "Corregir",
+							"State": "PendingFixLevel2",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") = false && this.state > 16777216 && this.state < 268435200"
+						}, {
+							"Name": "Recover",
+							"Description": "Recuperar",
+							"State": "PendingRecoverLevel2",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") = false"
+						},
+						{
+							"Name": "Edit",
+							"Description": "Editar",
+							"State": "PendingEditLevel2",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") = false",
+							"Actions": ["ClockingPendingEdit"]
+						}, {
+							"Name": "Delete",
+							"Description": "Eliminar",
+							"State": "PendingDeleteLevel2",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") = false"
+						}, {
+							"Name": "Comment",
+							"State": "DeniedDelete",
+							"Actions": ["ClockingComment"]
+						}
+					]
+				}, {
+					"Name": "Edited",
+					"Description": "Editado",
+					"Match": "SolEliminar, SolAceptada",
+					"Events": [{
+							"Name": "Fix",
+							"Description": "Corregir",
+							"State": "PendingFix",
+							"Condition": "IsInRole(\"Persona\") && IsCurrentUser(this.employee) && this.state > 16777216 && this.state < 268435200"
+						}, {
+							"Name": "Recover",
+							"Description": "Recuperar",
+							"State": "PendingRecover",
+							"Condition": "IsInRole(\"Persona\") && IsCurrentUser(this.employee)"
+						},
+						{
+							"Name": "Edit",
+							"Description": "Editar",
+							"State": "PendingEdit",
+							"Actions": ["ClockingPendingEdit"],
+							"Condition": "IsInRole(\"Persona\") && IsCurrentUser(this.employee)"
+						}, {
+							"Name": "Delete",
+							"Description": "Eliminar",
+							"State": "PendingDelete",
+							"Condition": "IsInRole(\"Persona\") && IsCurrentUser(this.employee)"
+						}, {
+							"Name": "Fix",
+							"Description": "Corregir",
+							"State": "SinDefinir",
+							"Actions": ["ClockingFix"],
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") && this.state > 16777216 && this.state < 268435200"
+						}, {
+							"Name": "Edit",
+							"Description": "Editar",
+							"State": "SinDefinir",
+							"Actions": ["ClockingAddAndDelete"],
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\")"
+						}, {
+							"Name": "Delete",
+							"Description": "Eliminar",
+							"State": "SinDefinir",
+							"Actions": ["ClockingDelete"],
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\")"
+						}, {
+							"Name": "Fix",
+							"Description": "Corregir",
+							"State": "PendingFixLevel2",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") = false && this.state > 16777216 && this.state < 268435200"
+						}, {
+							"Name": "Recover",
+							"Description": "Recuperar",
+							"State": "PendingRecoverLevel2",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") = false"
+						},
+						{
+							"Name": "Edit",
+							"Description": "Editar",
+							"State": "PendingEditLevel2",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") = false",
+							"Actions": ["ClockingPendingEdit"]
+						}, {
+							"Name": "Delete",
+							"Description": "Eliminar",
+							"State": "PendingDeleteLevel2",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") = false"
+						}, {
+							"Name": "Comment",
+							"State": "Edited",
+							"Actions": ["ClockingComment"]
+						}
+					]
+				}, {
+					"Name": "DeniedEdit",
+					"Description": "Edición denegada",
+					"Match": "SolCrear, SolCancelada",
+					"Events": [{
+							"Name": "Edit",
+							"Description": "Editar",
+							"State": "PendingEdit",
+							"Actions": ["ClockingPendingEdit"],
+							"Condition": "IsInRole(\"Persona\") && IsCurrentUser(this.employee)"
+						}, {
+							"Name": "Delete",
+							"Description": "Eliminar",
+							"State": "PendingDelete",
+							"Condition": "IsInRole(\"Persona\") && IsCurrentUser(this.employee)"
+						}, {
+							"Name": "Fix",
+							"Description": "Corregir",
+							"State": "SinDefinir",
+							"Actions": ["ClockingFix"],
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") && this.state > 16777216 && this.state < 268435200"
+						}, {
+							"Name": "Edit",
+							"Description": "Editar",
+							"State": "SinDefinir",
+							"Actions": ["ClockingAddAndDelete"],
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\")"
+						}, {
+							"Name": "Delete",
+							"Description": "Eliminar",
+							"State": "SinDefinir",
+							"Actions": ["ClockingDelete"],
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\")"
+						}, {
+							"Name": "Edit",
+							"Description": "Editar",
+							"State": "PendingEditLevel2",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") = false",
+							"Actions": ["ClockingPendingEdit"]
+						}, {
+							"Name": "Delete",
+							"Description": "Eliminar",
+							"State": "PendingDeleteLevel2",
+							"Condition": "IsInRole(\"User\") && IsBoss(this.employee) && IsInRole(\"Admin\") = false"
+						}, {
+							"Name": "Comment",
+							"State": "DeniedEdit",
+							"Actions": ["ClockingComment"]
+						}
+					]
+				}
+			]
+		}
+	],
+	"Translations": {
+		"Incidencia con validación 2 niveles (empleado->supervisor->Admin) v.2": {
+			"es-ES": "Incidencia con validación 2 niveles (empleado->supervisor->Admin) v.2",
+			"ca-ES": "Validació d'incidències amb 2 nivells (empleat->supervisor->Admin) v.2",
+			"en-GB": "Type type with 2-level validation (employee->supervisor->Admin) v.2",
+			"fr-FR": "Type de temps avec validation à 2 niveaux (employé->superviseur->Admin) v.2",
+			"pt-PT": "Incidência com validação 2 níveis(empregado->supervisor->Admin) v.2",
+			"es-EU": "2 mailetako baliozkotze gertakaria(langilea->ikuskatzailea->Admin) v.2"
+		},
+		"Aceptar": {
+			"es-ES": "Aceptar",
+			"ca-ES": "Acceptar",
+			"en-GB": "Accept",
+			"fr-FR": "Accepter",
+			"pt-PT": "Aceitar",
+			"es-EU": "Onartu"
+		},
+		"Corrección denegada": {
+			"es-ES": "Corrección denegada",
+			"ca-ES": "Correcció denegada",
+			"en-GB": "Correction denied",
+			"fr-FR": "Correction rejetée",
+			"pt-PT": "Correcção recusada",
+			"es-EU": "Zuzenketa ukatua"
+		},
+		"Corrección pendiente nivel 1": {
+			"es-ES": "Corrección pendiente nivel 1",
+			"ca-ES": "Correcció pendent del nivell 1",
+			"en-GB": "Correction pending level 1",
+			"fr-FR": "Correction en attente niveau 1",
+			"pt-PT": "Correcção pendente nível 1",
+			"es-EU": "1. mailako zuzenketaren zain"
+		},
+		"Correción pendiente nivel 2": {
+			"es-ES": "Correción pendiente nivel 2",
+			"ca-ES": "Correció pendent del nivell 2",
+			"en-GB": "Correction pending level 2",
+			"fr-FR": "Correction en attente niveau 2",
+			"pt-PT": "Correcção pendente nível 2",
+			"es-EU": "2. mailako zuzenketaren zain"
+		},
+		"Corregido": {
+			"es-ES": "Corregido",
+			"ca-ES": "Corregit",
+			"en-GB": "Corrected",
+			"fr-FR": "Corrigé",
+			"pt-PT": "Corrigido",
+			"es-EU": "Zuzendua"
+		},
+		"Corregir": {
+			"es-ES": "Corregir",
+			"ca-ES": "Corregir",
+			"en-GB": "Correct",
+			"fr-FR": "Corriger",
+			"pt-PT": "Corrigir",
+			"es-EU": "Zuzendu"
+		},
+		"Creación denegada": {
+			"es-ES": "Creación denegada",
+			"ca-ES": "Creació denegada",
+			"en-GB": "Creation rejected",
+			"fr-FR": "Creation refusée",
+			"pt-PT": "Criação recusada",
+			"es-EU": "Sorkuntza ukatua"
+		},
+		"Creación pendiente nivel 1": {
+			"es-ES": "Creación pendiente nivel 1",
+			"ca-ES": "Creació pendent del nivell 1",
+			"en-GB": "Creation pending level 1",
+			"fr-FR": "Creation en attente niveau 1",
+			"pt-PT": "Criação pendente nível 1",
+			"es-EU": "1. mailako sorkuntzaren zain"
+		},
+		"Creación pendiente nivel 2": {
+			"es-ES": "Creación pendiente nivel 2",
+			"ca-ES": "Creació pendent del nivell 2",
+			"en-GB": "Creation pending level 2",
+			"fr-FR": "Creation en attente niveau 2",
+			"pt-PT": "Criação pendente nível 2",
+			"es-EU": "2. mailako sorkuntzaren zain"
+		},
+		"Creado": {
+			"es-ES": "Creado",
+			"ca-ES": "Creat",
+			"en-GB": "Created",
+			"fr-FR": "Créé",
+			"pt-PT": "Criado",
+			"es-EU": "Sortua"
+		},
+		"Crear": {
+			"es-ES": "Crear",
+			"ca-ES": "Crear",
+			"en-GB": "Create",
+			"fr-FR": "Créer",
+			"pt-PT": "Criar",
+			"es-EU": "Sortu"
+		},
+		"Denegar": {
+			"es-ES": "Denegar",
+			"ca-ES": "Denegar",
+			"en-GB": "Deny",
+			"fr-FR": "Refuser",
+			"pt-PT": "Recusar",
+			"es-EU": "Ukatu"
+		},
+		"Edición denegada": {
+			"es-ES": "Edición denegada",
+			"ca-ES": "Modificació denegada",
+			"en-GB": "Edition denied",
+			"fr-FR": "Modification refusée",
+			"pt-PT": "Edição recusada",
+			"es-EU": "Edizio ukatua"
+		},
+		"Edición pendiente nivel 1": {
+			"es-ES": "Edición pendiente nivel 1",
+			"ca-ES": "Modificació pendent del nivell 1",
+			"en-GB": "Edition pending level 1",
+			"fr-FR": "Modification en attente niveau 1",
+			"pt-PT": "Edição pendente nível 1",
+			"es-EU": "1. mailako edizioaren zain"
+		},
+		"Editado": {
+			"es-ES": "Editado",
+			"ca-ES": "Modificat",
+			"en-GB": "Edited",
+			"fr-FR": "Modifié",
+			"pt-PT": "Editado",
+			"es-EU": "Editatua"
+		},
+		"Editar": {
+			"es-ES": "Editar",
+			"ca-ES": "Modificar",
+			"en-GB": "Edit",
+			"fr-FR": "Editer",
+			"pt-PT": "Editar",
+			"es-EU": "Editatu"
+		},
+		"Eliminación denegada": {
+			"es-ES": "Eliminación denegada",
+			"ca-ES": "Supressió denegada",
+			"en-GB": "Deletion denied",
+			"fr-FR": "Suppression refusée",
+			"pt-PT": "Eliminação recusada",
+			"es-EU": "Ezabapen ukatua"
+		},
+		"Eliminación pendiente nivel 1": {
+			"es-ES": "Eliminación pendiente nivel 1",
+			"ca-ES": "Supressió pendent del nivell 1",
+			"en-GB": "Deletion pending level 1",
+			"fr-FR": "Suppression en attente niveau 1",
+			"pt-PT": "Eliminação pendente nível 1",
+			"es-EU": "1. mailako ezabapenaren zain"
+		},
+		"Eliminación pendiente nivel 2": {
+			"es-ES": "Eliminación pendiente nivel 2",
+			"ca-ES": "Supressió pendent del nivell 2",
+			"en-GB": "Deletion pending level 2",
+			"fr-FR": "Suppression en attente niveau 2",
+			"pt-PT": "Eliminação pendente nível 2",
+			"es-EU": "2. mailako ezabapenaren zain"
+		},
+		"Eliminado": {
+			"es-ES": "Eliminado",
+			"ca-ES": "Suprimit",
+			"en-GB": "deleted",
+			"fr-FR": "Supprimé",
+			"pt-PT": "Eliminado",
+			"es-EU": "Ezabatua"
+		},
+		"Eliminar": {
+			"es-ES": "Eliminar",
+			"ca-ES": "Suprimir",
+			"en-GB": "Delete",
+			"fr-FR": "Supprimer",
+			"pt-PT": "Eliminar",
+			"es-EU": "Ezabatu"
+		},
+		"Recuperación denegada": {
+			"es-ES": "Recuperación denegada",
+			"ca-ES": "Recuperació denegada",
+			"en-GB": "Recovery denied",
+			"fr-FR": "Récupération denegada",
+			"pt-PT": "Recuperação recusada",
+			"es-EU": "Berreskuratze ukatua"
+		},
+		"Recuperación pendiente nivel 1": {
+			"es-ES": "Recuperación pendiente nivel 1",
+			"ca-ES": "Recuperació pendent del nivell 1",
+			"en-GB": "Recovery pending level 1",
+			"fr-FR": "Récupération en attente niveau 1",
+			"pt-PT": "Recuperação pendente nível 1",
+			"es-EU": "1. mailako berreskuratzearen zain"
+		},
+		"Recuperación pendiente nivel 2": {
+			"es-ES": "Recuperación pendiente nivel 2",
+			"ca-ES": "Recuperació pendent del nivell 2",
+			"en-GB": "Recovery pending level 2",
+			"fr-FR": "Récupération en attente niveau 2",
+			"pt-PT": "Recuperação pendente nível 2",
+			"es-EU": "2. mailako berreskuratzearen zain"
+		},
+		"Recuperado": {
+			"es-ES": "Recuperado",
+			"ca-ES": "Recuperat",
+			"en-GB": "Recovered",
+			"fr-FR": "Récupéré",
+			"pt-PT": "Recuperado",
+			"es-EU": " Berreskuratua"
+		},
+		"Recuperar": {
+			"es-ES": "Recuperar",
+			"ca-ES": "Recuperar",
+			"en-GB": "Recover",
+			"fr-FR": "Récupérer",
+			"pt-PT": "Recuperar",
+			"es-EU": "Berreskuratu"
+		},
+		"Sin solicitud": {
+			"es-ES": "Sin solicitud",
+			"ca-ES": "Sense sol·licituds",
+			"en-GB": "Without request",
+			"fr-FR": "Sans demande",
+			"pt-PT": "Sem pedido",
+			"es-EU": "Eskaerarik gabe"
+		}
+	}
+}

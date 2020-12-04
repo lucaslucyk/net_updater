@@ -1,0 +1,2 @@
+GRANT EXECUTE ON nettimeadm.EliminarMarcajesXPersonaYfech2 TO nettimeusr;
+CREATE SYNONYM nettimeusr.EliminarMarcajesXPersonaYfech2 FOR nettimeadm.EliminarMarcajesXPersonaYfech2;

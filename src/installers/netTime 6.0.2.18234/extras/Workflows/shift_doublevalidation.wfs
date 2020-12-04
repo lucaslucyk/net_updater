@@ -1,0 +1,147 @@
+{
+	"Workflows" : [{
+			"Name" : "Peticiones de jornada - doble validación v.3",
+			"Description" : "Workflow para empleados con validación de peticiones de jornada v.3",
+			"Target" : "shift",
+			"InitialState" : "Created",
+			"States" : [{
+					"Name" : "Created",
+					"Match" : "0",
+					"Events" : [{
+							"Name" : "Change",
+							"Actions" : ["ShiftDemandAccept"],
+							"State" : "Accepted",
+							"Condition" : "IsBoss(this.employee) || (IsInRole(\"Persona\") && this.employee.Portal.NoRequiereValidacionEnCorreccion)"
+						}, {
+							"Name" : "Change",
+							"State" : "PendingLevel1",
+							"Condition" : "IsInRole(\"Persona\") && this.employee.Portal.NoRequiereValidacionEnCorreccion = false"
+						}, {
+							"Name" : "Deny",
+							"State" : "Denied",
+							"Condition" : "IsInRole(\"Persona\")"
+						}
+					]
+				}, {
+					"Name" : "PendingLevel1",
+					"Match" : "JorPendiente",
+					"Description" : "Pendiente nivel 1",
+					"Events" : [{
+							"Name" : "Accept",
+							"State" : "PendingLevel2",
+							"Condition" : "IsBoss(this.employee) && IsInRole(\"Admin\") = false"
+						}, {
+							"Name" : "Accept",
+							"Actions" : ["ShiftDemandAccept"],
+							"State" : "Accepted",
+							"Condition" : "IsBoss(this.employee) && IsInRole(\"Admin\")"
+						}, {
+							"Name" : "Deny",
+							"State" : "Denied",
+							"Condition" : "IsBoss(this.employee)"
+						}
+					]
+				}, {
+					"Name" : "PendingLevel2",
+					"Match" : "JorPendiente",
+					"Description" : "Pendiente nivel 2",
+					"Events" : [{
+							"Name" : "Accept",
+							"Actions" : ["ShiftDemandAccept"],
+							"State" : "Accepted",
+							"Condition" : "IsBoss(this.employee) && IsInRole(\"Admin\")"
+						}, {
+							"Name" : "Deny",
+							"State" : "Denied",
+							"Condition" : "IsBoss(this.employee) && IsInRole(\"Admin\")"
+						}
+					]
+				}, {
+					"Name" : "Accepted",
+					"Match" : "JorAceptada",
+					"Description" : "Aceptada",
+					"Events" : [{
+							"Name" : "Change",
+							"State" : "PendingLevel2",
+							"Condition" : "IsBoss(this.employee) && IsInRole(\"Admin\") = false || (IsInRole(\"Persona\") && this.employee.Portal.NoRequiereValidacionEnCorreccion)"
+						}, {
+							"Name" : "Change",
+							"State" : "PendingLevel1",
+							"Condition" : "IsInRole(\"Persona\") && this.employee.Portal.NoRequiereValidacionEnCorreccion = false"
+						}, {
+							"Name" : "Change",
+							"Actions" : ["ShiftDemandAccept"],
+							"State" : "Accepted",
+							"Condition" : "IsBoss(this.employee) && IsInRole(\"Admin\")"
+						}, {
+							"Name" : "Deny",
+							"State" : "Denied",
+							"Condition" : "IsInRole(\"Persona\")"
+						}
+					]
+				}, {
+					"Name" : "Denied",
+					"Match" : "JorCancelada",
+					"Description" : "Denegada",
+					"Events" : [{
+							"Name" : "Change",
+							"State" : "PendingLevel2",
+							"Condition" : "IsBoss(this.employee) && IsInRole(\"Admin\") = false || (IsInRole(\"Persona\") && this.employee.Portal.NoRequiereValidacionEnCorreccion)"
+						}, {
+							"Name" : "Change",
+							"State" : "PendingLevel1",
+							"Condition" : "IsInRole(\"Persona\") && this.employee.Portal.NoRequiereValidacionEnCorreccion = false"
+						}, {
+							"Name" : "Change",
+							"Actions" : ["ShiftDemandAccept"],
+							"State" : "Accepted",
+							"Condition" : "IsBoss(this.employee) && IsInRole(\"Admin\")"
+						}
+					]
+				}
+			]
+		}
+	],
+	"Translations":{
+		"Workflow para empleados con validación de peticiones de jornada":{
+			"es-ES" : "Workflow para empleados con validación de peticiones de jornada",
+			"es-CA" : "Workflow per a empleats amb validació de les peticions de canvi de jornada",
+			"en-GB" : "Workflow for employees to get their Shift requests validated",
+			"fr-FR" : "Procédure pour obtenir la validation des demandes relatives aux Journées",
+			"pt-PT" : "Workflow para empregados com validação de alteração de jornada",
+			"es-EU" : "Lanaldi eskaera baliozkotzearekin langileen Workflow-a"
+		},
+		"Pendiente nivel 1":{
+			"es-ES" : "Pendiente nivel 1",
+			"es-CA" : "Pendent del nivell 1",
+			"en-GB" : "Pending level 1",
+			"fr-FR" : "En attente niveau 1",
+			"pt-PT" : "Pendente nível 1",
+			"es-EU" : "1. Mailaren zain "
+		},
+		"Pendiente nivel 2":{
+			"es-ES" : "Pendiente nivel 2",
+			"es-CA" : "Pendent del nivell 2",
+			"en-GB" : "Pending level 2",
+			"FR-FR" : "En attente niveau 2",
+			"pt-PT" : "Pendente nível 2",
+			"es-EU" : "2. Mailaren zain "
+		},
+		"Aceptada":{
+			"es-ES" : "Aceptada",
+			"es-CA" : "Acceptada",
+			"en-GB" : "Accepted",
+			"fr-FR" : "Acceptée",
+			"pt-PT" : "Aceite",
+			"es-EU" : " Onartua"
+		},
+		"Denegada":{
+			"es-ES" : "Denegada",
+			"es-CA" : "Denegada",
+			"en-GB" : "Denied",
+			"fr-FR" : "Refusée",
+			"pt-PT" : "Recusada",
+			"es-EU" : "Ukatua"
+		}
+	}
+}

@@ -1,0 +1,77 @@
+CREATE TABLE PresenciaAccesos (
+	ID NUMBER NOT NULL,
+	IDZONA NUMBER NOT NULL,
+	FECHA TIMESTAMP NOT NULL,
+	EMPLEADOS BLOB NULL,
+	VISITAS BLOB NULL) TABLESPACE TS_NETTIME_D;
+/
+
+CREATE UNIQUE INDEX PresenciaAccesos_PK ON PresenciaAccesos (ID) TABLESPACE TS_NETTIME_I;
+/
+
+CREATE INDEX PresenciaAccesos_FECHA ON PresenciaAccesos (FECHA) TABLESPACE TS_NETTIME_I;
+/
+
+ALTER TABLE PresenciaAccesos ADD CONSTRAINT PresenciaAccesos_PK PRIMARY KEY (ID) USING INDEX TABLESPACE TS_NETTIME_I ENABLE;
+/
+
+create sequence IDPREASEQ minvalue 1 maxvalue 999999999999999999999999999 start with 1 increment by 1 cache 20;
+/
+
+CREATE OR REPLACE PROCEDURE ResetIDPREASEQ AS
+
+cval   INTEGER;
+inc_by VARCHAR2(25);
+startvalue integer;
+
+BEGIN
+  SELECT NVL(MAX(ID), 0)+1 INTO startvalue FROM PerfilesAccesos;
+  EXECUTE IMMEDIATE 'ALTER SEQUENCE IDPREASEQ MINVALUE 0';
+  EXECUTE IMMEDIATE 'SELECT IDPREASEQ.NEXTVAL FROM dual' INTO cval;
+
+  cval := cval - startvalue + 1;
+  IF cval < 0 THEN
+    inc_by := ' INCREMENT BY ';
+    cval:= ABS(cval);
+  ELSE
+    inc_by := ' INCREMENT BY -';
+  END IF;
+   
+  EXECUTE IMMEDIATE 'ALTER SEQUENCE IDPREASEQ ' || inc_by || cval;
+  EXECUTE IMMEDIATE 'SELECT IDPREASEQ.NEXTVAL FROM dual' INTO cval;
+  EXECUTE IMMEDIATE 'ALTER SEQUENCE IDPREASEQ INCREMENT BY 1';
+
+END;
+/
+
+CREATE OR REPLACE PROCEDURE GuardarPresencia(paramIDZONA IN int DEFAULT NULL,
+																							paramFECHA IN timestamp DEFAULT NULL,
+																							paramEMPLEADOS IN blob DEFAULT NULL,
+																							paramVISITAS IN blob DEFAULT NULL) AS
+BEGIN
+
+merge into PresenciaAccesos using dual on (IDZONA = paramIDZONA and FECHA = paramFECHA)
+ when not matched then INSERT (ID, IDZONA, FECHA, EMPLEADOS, VISITAS) VALUES (IDPREASEQ.nextval, paramIDZONA, paramFECHA, paramEMPLEADOS, paramVISITAS)
+     when matched then UPDATE SET EMPLEADOS = paramEMPLEADOS, VISITAS = paramVISITAS;
+END;
+/
+
+CREATE OR REPLACE PROCEDURE ObtenerPresencia(paramFECHA  IN TIMESTAMP, RCT1 IN OUT GLOBALPKG.RCT1) AS
+BEGIN
+
+		OPEN RCT1 FOR SELECT IDZONA, P1.FECHA, EMPLEADOS, VISITAS 
+									FROM PresenciaAccesos P1, 
+    									(SELECT MAX(FECHA) as FECHA 
+											FROM PresenciaAccesos 
+											WHERE FECHA < paramFECHA) P2 
+									WHERE P1.FECHA = P2.FECHA;
+END;
+/
+
+CREATE OR REPLACE PROCEDURE EliminarPresenciaDesde(paramFECHA IN timestamp DEFAULT NULL) AS
+BEGIN
+
+delete from PresenciaAccesos WHERE FECHA = paramFECHA;
+
+END;
+/
