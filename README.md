@@ -1,2 +1,3 @@
 # net_updater
-updater from nettime v4/5 to v6
+
+this project has been moved to [https://gitlab.com/spec-sa-ar/nt_updater](https://gitlab.com/spec-sa-ar/nt_updater).
